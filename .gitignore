@@ -1,0 +1,12 @@
+node_modules/
+dist/
+vite.log
+vite-error.log
+*.local
+.vercel/
+server/.vercel/
+server/node_modules/
+server/.env.local
+*.blend1
+__pycache__/
+art/phase2/rejected/
