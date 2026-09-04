@@ -4,8 +4,8 @@
 
 ## 在线试玩
 
-- GitHub Pages：<https://liyue-aigc.github.io/emberfall-rpg/>
-- 源代码：<https://github.com/liyue-aigc/emberfall-rpg>
+- GitHub Pages：<https://15257988874.github.io/emberfall-rpg/>（首次部署需要先启用 Pages）
+- 源代码：<https://github.com/15257988874/emberfall-rpg>
 
 ## 启动
 
@@ -77,6 +77,90 @@ npm run build
 打包结果位于 `dist` 文件夹。
 
 GitHub Pages 会在 `main` 分支更新后通过 `.github/workflows/deploy-pages.yml` 自动构建和发布。
+
+## 上传到 GitHub 并触发 Actions
+
+以下流程适用于大多数使用 GitHub Actions 发布的 Vite 静态站点。将命令中的占位符替换为自己的 GitHub 用户名、仓库名和本地项目目录。
+
+### 1. 准备本地项目
+
+安装 Git 和 Node.js，确认项目根目录包含 `package.json`、锁文件（例如 `package-lock.json`）以及 `.github/workflows/` 下的工作流文件。首次部署前建议在本地运行测试；构建命令由 Actions 在云端执行。
+
+```bash
+cd /path/to/your-project
+git status
+npm install
+```
+
+不要把密码、访问令牌、SSH 私钥、`.env` 或其他敏感配置提交到仓库。运行 `git status` 时应确认这些文件未被加入暂存区。
+
+### 2. 创建 GitHub 仓库
+
+在 <https://github.com/new> 创建仓库，记下仓库地址，例如：
+
+```text
+https://github.com/<github-user>/<repository>.git
+```
+
+创建空仓库时不要自动添加 README、`.gitignore` 或 License，避免与已有本地项目产生首次提交冲突。仓库可以选择 Public 或 Private；GitHub Pages 的可用性取决于账号方案和仓库设置。
+
+### 3. 初始化并上传代码
+
+如果项目还不是 Git 仓库，执行：
+
+```bash
+git init -b main
+git add .
+git commit -m "Initial release"
+```
+
+添加远程仓库并推送 `main` 分支：
+
+```bash
+git remote add origin git@github.com:<github-user>/<repository>.git
+# 也可以使用 HTTPS：
+# git remote add origin https://github.com/<github-user>/<repository>.git
+git push -u origin main
+```
+
+后续修改只需要提交并推送：
+
+```bash
+git add .
+git commit -m "Update game"
+git push
+```
+
+SSH 推送需要在 GitHub 账户的 **Settings → SSH and GPG keys** 添加公钥；HTTPS 推送需要使用 GitHub 推荐的凭据管理方式或 Personal Access Token。不要把 Token 直接写进远程 URL 或脚本。
+
+### 4. 配置 GitHub Pages
+
+1. 打开仓库的 **Settings → Pages**。
+2. 在 **Build and deployment → Source** 中选择 **GitHub Actions**。
+3. 确认工作流文件已经提交到 `.github/workflows/`，并且工作流拥有 `pages: write` 与 `id-token: write` 权限。
+
+本项目使用的工作流文件是 `.github/workflows/deploy-pages.yml`。它会执行 `npm ci`、`npm run build`，上传 `dist` 构建产物，再调用 `actions/deploy-pages` 发布站点。
+
+### 5. 触发与查看 Actions
+
+推送到 `main` 会自动触发工作流。也可以在仓库的 **Actions** 页面选择目标工作流，点击 **Run workflow** 手动触发；失败后使用 **Re-run all jobs** 重试。
+
+验收时依次确认：
+
+- `build` 作业中的依赖安装和构建步骤为绿色。
+- `deploy` 作业成功完成，并显示 Pages 地址。
+- **Settings → Pages** 显示已发布环境。
+- 访问 `https://<github-user>.github.io/<repository>/` 能加载首页，浏览器控制台没有资源 404。
+
+### 常见问题
+
+| 现象 | 处理方式 |
+| --- | --- |
+| `Configure Pages` 失败 | 先在 **Settings → Pages** 将 Source 设为 **GitHub Actions**，再重新运行工作流。 |
+| `npm ci` 失败 | 确认锁文件已提交，并让锁文件与 `package.json` 保持同步。 |
+| 页面打开但 JS/CSS 404 | Vite 项目设置正确的 `base`；仓库 Pages 通常需要使用相对路径或 `/<repository>/` 前缀。 |
+| 推送时提示认证失败 | 检查 SSH 公钥是否添加到当前账号，或重新配置 GitHub HTTPS 凭据；不要提交私钥或 Token。 |
+| Actions 没有运行 | 确认工作流位于默认分支的 `.github/workflows/`，并检查 Actions 是否被仓库或组织禁用。 |
 
 ## 第二阶段美术垂直切片
 
